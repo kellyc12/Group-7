@@ -1,1 +1,24 @@
+Idea 1: Use Piazza and Blackboard API to send Slack notification/Update Google Calendar
+Most technology companies are now using Slack and as budding professionals looking to break into the
+employment market, many students are also using Slack. This is just another app adding onto the increasing 
+load of apps students are asked to track and use to manage work, school, and personal life. This app
+brings everything into one spot and make that more manageable for your average student. It will help students 
+organize and stay on top of their classes by integrating Piazza and Blackboard notifications into Slack and 
+Google Calendar. The app allows you to have all of your most important tasks and events in one place without
+you having to go between apps. This will be done using the Blackboard API and Piazza API.  The app will 
+notify students on Slack about new assignments but also add these assignments into their Google Calendar
+with a reminder.  It can also be used notify students when teachers post new announcements or grades.
+
+
+Idea 2: Fitbit API: Use running tempo to match with Spotify songs (article) 
+It is scientifically proven that listening to music while running can boost your performance. Not only can 
+it helps increase your stamina for a longer exercise duration, but listening to music while exercising also
+puts you in a better mood, and thus inspiring you to work harder throughout your exercise. There are plenty 
+of workout playlists available online that are equipped with the ideal beats per minute to encourage a quality workout session. However, everyone workouts to a different rhythm and it is not often that someone finds their workout playlist right away. This app helps users to do exactly that and by doing so, it minimizes time wasted in their workout space looking for a suitable anthem (and believe me, it does take me a while before I can find a song to run to), or constantly having to skip songs.
+Our app first utilizes the Fitbit API to fetch data from the user’s Fitbit activity tracker (in particular, 
+heart rate and steps per minutes). Then, the app uses the beats per minute (BPM) value recorded to match the
+user with a suitable playlist by using the Spotify API. This ensures that your music is optimized for your 
+running speed. Not too fast, Not too slow
+
+
 
