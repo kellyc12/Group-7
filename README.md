@@ -1,3 +1,3 @@
-# Group-7
+# Running Beats
 
-Just possible ideas
+Application that generates playlists based on your music preference and running tempo.
