@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-var client_id = 'df441e97cb38440c879d2080015b1b12' ; // Your client id
-var client_secret = 'b8045db09c544880b37ae2c7f0844a3c'; // Your secret
+var client_id = 'undefined' ; // Your client id
+var client_secret = 'undefined'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
 var querystring = require('querystring');
@@ -10,12 +10,6 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-
-var EventEmitter = require("events").EventEmitter;
-var usertemp = new EventEmitter();
-
-
-
 
 var generateRandomString = function(length) {
   var text = '';
@@ -30,16 +24,16 @@ var generateRandomString = function(length) {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('auth');
+  res.render('index', {title : 'Express'});
 });
 
 
 
 /*testing that authentication */
 
-// router.get('/spotify', function (req,res,next){
-//   res.render('auth')
-// });
+router.get('/spotify', function (req,res,next){
+  res.render('auth')
+});
 
 router.get('/callback', function(req, res, next) {
   var code = req.query.code || null;
@@ -79,28 +73,17 @@ router.get('/callback', function(req, res, next) {
         };
 
         // use the access token to access the Spotify Web API
-        request.get(options, function(error,response, body) {
-          usertemp.data =body;
-          usertemp.emit('update');
+        request.get(options, function(error, response, body) {
+          console.log(body);
         });
 
-        usertemp.on('update', function (){
-          console.log(usertemp.data);
-        });
-        console.log(usertemp.data);
-
-
-        // console.log(access_token);
-        // res.render('auth', {layout: 'user-profile-template'});
         // we can also pass the token to the browser to make requests from there
-        res.redirect('/user?' +  querystring.stringify({
-          access_token: access_token,
-          refresh_token: refresh_token
+        res.redirect('/#' +
+          querystring.stringify({
+            access_token: access_token,
+            refresh_token: refresh_token
           }));
-
-
-      }
-      else {
+      } else {
         res.redirect('/#' +
           querystring.stringify({
             error: 'invalid_token'
@@ -130,7 +113,7 @@ router.get('/login', function(req, res) {
   // your application requests refresh and access tokens
   // after checking the state parameter
 
-
+  
 
 
 router.get('/refresh_token', function(req, res) {
