@@ -3,6 +3,7 @@ var router = express.Router();
 
 var client_id = 'undefined' ; // Your client id
 var client_secret = 'undefined'; // Your secret
+
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
 var querystring = require('querystring');
