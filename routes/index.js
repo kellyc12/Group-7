@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-var client_id = 'undefined' ; // Your client id
-var client_secret = 'undefined'; // Your secret
+var client_id = 'df441e97cb38440c879d2080015b1b12' ; // Your client id
+var client_secret = 'b8045db09c544880b37ae2c7f0844a3c'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
 var querystring = require('querystring');
@@ -78,7 +78,7 @@ router.get('/callback', function(req, res, next) {
         });
 
         // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' +
+        res.redirect('/user?' +
           querystring.stringify({
             access_token: access_token,
             refresh_token: refresh_token
@@ -140,5 +140,54 @@ router.get('/refresh_token', function(req, res) {
   });
 });
 
+
+/*playing with getting a users playlist once authenticated  */
+router.get('/playlist', function(req, res, next) {
+  var access_token = req.query.access_token;
+  var refresh_token =  req.query.refresh_token;
+  var options = {
+    url: 'https://api.spotify.com/v1/me',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  
+  request.get(options, function(error, response, body) {
+    var userID = body.id;
+    // var email = body.email;
+    // console.log(userID);
+    var playlist = {
+      url: "https://api.spotify.com/v1/users/"+kellch12+"/playlists",
+      headers: { 'Authorization' : 'Bearer ' + access_token},
+      json: true
+    };
+    request.get (playlist, function(error, response, body) {
+      console.log(body);
+    });
+  });
+  // console.log(access_token);
+  res.render('getplaylist', {at : access_token});
+});
+
+router.get('/user', function(req,res){
+  var token = req.query.access_token
+  var options = {
+    url: 'https://api.spotify.com/v1/me',
+    headers: { 'Authorization': 'Bearer ' + token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body){
+    var dpname = body.display_name;
+    var country = body.country;
+    var email = body.email;
+    //var prof  =  body.images;
+    var id = body.id;
+    console.log(dpname);
+    console.log(email);
+    res.render('user', {display_name : dpname, id : id, email : email, country : country});
+
+  })
+
+})
 
 module.exports = router;
