@@ -75,8 +75,6 @@
           while ( e = r.exec(q)) {
              hashParams[e[1]] = decodeURIComponent(e[2]);
           }
-          console.log(hashParams)
-
           return hashParams;
         }
 
@@ -103,14 +101,13 @@
               access_token: access_token,
               refresh_token: refresh_token
             });
-            // console.log(access_token)
+
             $.ajax({
                 url: 'https://api.spotify.com/v1/me',
                 headers: {
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-
                   userProfilePlaceholder.innerHTML = userProfileTemplate(response);
 
                   $('#login').hide();
@@ -142,3 +139,4 @@
     </script>
   </body>
 </html>
+
