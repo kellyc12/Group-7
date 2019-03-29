@@ -98,7 +98,7 @@ router.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-read-private user-read-email playlist-read-private playlist-read-collaborative';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -143,8 +143,9 @@ router.get('/refresh_token', function(req, res) {
 
 /*playing with getting a users playlist once authenticated  */
 router.get('/playlist', function(req, res, next) {
-  var access_token = req.query.access_token;
-  var refresh_token =  req.query.refresh_token;
+  var access_token =  req.query.token;
+  var queer = req.query.pstype;
+  console.log(queer);
   var options = {
     url: 'https://api.spotify.com/v1/me',
     headers: { 'Authorization': 'Bearer ' + access_token },
@@ -156,20 +157,29 @@ router.get('/playlist', function(req, res, next) {
     // var email = body.email;
     // console.log(userID);
     var playlist = {
-      url: "https://api.spotify.com/v1/users/"+kellch12+"/playlists",
+      url: "https://api.spotify.com/v1/me/playlists",
       headers: { 'Authorization' : 'Bearer ' + access_token},
       json: true
     };
+    
     request.get (playlist, function(error, response, body) {
       console.log(body);
+      var context = body;
+      if (queer == "Public") {
+        res.render ('getplaylist', {c : context, uid : userID, pub : queer });
+      }
+      else {
+        res.render ('getplaylist', {c : context, uid : userID, sec : queer });
+      }
+      
     });
   });
   // console.log(access_token);
-  res.render('getplaylist', {at : access_token});
+  // res.render('getplaylist', {at : access_token});
 });
 
 router.get('/user', function(req,res){
-  var token = req.query.access_token
+  var token = req.query.access_token;
   var options = {
     url: 'https://api.spotify.com/v1/me',
     headers: { 'Authorization': 'Bearer ' + token },
@@ -180,14 +190,16 @@ router.get('/user', function(req,res){
     var dpname = body.display_name;
     var country = body.country;
     var email = body.email;
+    var prof = body.images
+    console.log(prof)
     //var prof  =  body.images;
     var id = body.id;
     console.log(dpname);
     console.log(email);
-    res.render('user', {display_name : dpname, id : id, email : email, country : country});
+    res.render('user', {display_name : dpname, id : id, email : email, country : country, image : prof, tok :  token});
 
-  })
+  });
 
-})
+});
 
 module.exports = router;
