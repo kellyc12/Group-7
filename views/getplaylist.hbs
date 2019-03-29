@@ -1,3 +1,57 @@
-<h1>User's Playlist</h1>
-<p>Access token: </p>
-<p>{{at}}</p>
+
+<h1>{{uid}}'s Playlist</h1>
+
+    <table class = "table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Public?</th>
+                <th>Collaborative?</th>
+            </tr>
+        </thead>
+        {{#if pub}}
+        <tbody>
+
+            {{#each c.items}}
+           
+            <tr>
+                 {{#if this.public}}
+                <td>{{this.name}}</td>
+                <td>{{this.id}}</td>
+                <td>{{this.public}} </td>
+                <td>{{this.collaborative}}</td>
+                 {{/if}}
+            </tr>
+           
+            {{/each}}
+        </tbody>
+
+        {{else}}
+        <tbody>
+
+            {{#each c.items}}
+           
+            <tr>
+                 {{#unless this.public }}
+                <td>{{this.name}}</td>
+                <td>{{this.id}}</td>
+                <td>{{this.public}} </td>
+                <td>{{this.collaborative}}</td>
+                 {{/unless}}
+            </tr>
+            {{/each}}
+        </tbody>
+        {{/if}}
+        
+    </table> 
+
+
+
+
+
+{{!-- <script>
+    var source   = document.getElementById("playlist-template").innerHTML,
+        template = Handlebars.compile(source);
+</script>
+ --}}
