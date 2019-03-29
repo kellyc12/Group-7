@@ -1,0 +1,7 @@
+Our group chose to use Javascript, NodeJS, ExpressJS and HandlebarJS. We will also be using mongoDB in the backend. We chose Node 
+specifically because we thought thatit was useful that node is both a server side and client side language meaning it will be easy 
+to transport data between the server and client side. ExpressJS is built to be highly compatible with NodeJS so it was the obvious 
+choice to pair with NodeJS once we decided on it. We then decided to use handlebar to help with front end views and templating 
+because it a clean language and it is compiled rather than interpreted. We briefly considered using python, flask, and mySQL because
+a few group members had experience using it, however, we ultimately decided against it because we would like to get experience 
+using different technology stacks. 
