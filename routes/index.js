@@ -208,8 +208,6 @@ router.get('/user', function(req,res){
 
 router.get('/signup', function(req, res, next) {
   res.render('signupform');
-
-
 });
 
 
