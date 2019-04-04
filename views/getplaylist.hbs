@@ -26,6 +26,23 @@
            
             {{/each}}
         </tbody>
+        {{/if}}
+          {{#if all}}
+        <tbody>
+
+            {{#each c.items}}
+           
+            <tr>
+            
+                <td>{{this.name}}</td>
+                <td>{{this.id}}</td>
+                <td>{{this.public}} </td>
+                <td>{{this.collaborative}}</td>
+            
+            </tr>
+           
+            {{/each}}
+        </tbody>
 
         {{else}}
         <tbody>
