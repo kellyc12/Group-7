@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-var client_id = 'df441e97cb38440c879d2080015b1b12' ; // Your client id
-var client_secret = 'b8045db09c544880b37ae2c7f0844a3c'; // Your secret
+var client_id = configspotify.MY_KEY ; // Your client id
+var client_secret = configspotify.SECRET_KEY; // Your secret
 
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
@@ -205,5 +205,12 @@ router.get('/user', function(req,res){
   });
 
 });
+
+router.get('/signup', function(req, res, next) {
+  res.render('signupform');
+
+
+});
+
 
 module.exports = router;
