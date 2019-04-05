@@ -12,6 +12,7 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+var mongo = require('mongodb');
 
 var generateRandomString = function(length) {
   var text = '';
@@ -209,6 +210,17 @@ router.get('/user', function(req,res){
 
 router.get('/signup', function(req, res, next) {
   res.render('signupform');
+});
+
+router.post('/signup', function(req, res, next){
+  fname = req.body.fname;
+  lname =  req.body.fname;
+  email = req.body.email;
+  uname = req.body.username;
+  password =  req.body.password;
+  console.log(uname);
+  res.redirect('/')
+
 });
 
 
