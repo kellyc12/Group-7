@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
+var spotify = require('./configs.js');
 
-var client_id = configspotify.MY_KEY ; // Your client id
-var client_secret = configspotify.SECRET_KEY; // Your secret
+var client_id = spotify.MY_KEY ; // Your client id
+var client_secret = spotify.SECRET_KEY; // Your secret
 
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
