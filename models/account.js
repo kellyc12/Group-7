@@ -5,8 +5,6 @@ var bcrypt = require("bcrypt-nodejs");
 var passport = require("passport");
 
 var Account = new Schema({
-  firstName: String,
-  lastName: String,
   username: String,
   password: String,
   email: String,
