@@ -12,7 +12,31 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-var mongo = require('mongodb');
+
+//create connection to new or existing database
+var MongoClient = require('mongodb').MongoClient;
+var url = "mongodb://localhost:27017/running-beats";
+
+MongoClient.connect(url, function(err, db) {
+  if (err) throw err;
+  console.log("Database created!");
+  db.close();
+});
+
+MongoClient.connect(url, function(err, db) {
+  if (err) throw err;
+  var dbo = db.db("running-beats");
+  dbo.createCollection("accounts", function(err, res) {
+    if (err) throw err;
+    console.log("Collection created!");
+    db.close();
+  });
+});
+
+//db creation and link done
+
+
+
 
 var generateRandomString = function(length) {
   var text = '';
@@ -213,12 +237,32 @@ router.get('/signup', function(req, res, next) {
 });
 
 router.post('/signup', function(req, res, next){
-  fname = req.body.fname;
-  lname =  req.body.fname;
-  email = req.body.email;
   uname = req.body.username;
+  emailuser = req.body.email;
   password =  req.body.password;
   console.log(uname);
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("running-beats");
+    var myobj = { username: uname, email: emailuser, pass:  password};
+    dbo.collection("accounts").insertOne(myobj, function(err, res) {
+      if (err) throw err;
+      console.log("1 document inserted");
+      db.close();
+    });
+  });
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("running-beats");
+    var query = { email: "1234@1234.com" };
+    dbo.collection("accounts").find(query).toArray(function(err, result) {
+      if (err) throw err;
+      console.log(result);
+      db.close();
+    });
+  });
   res.redirect('/')
 
 });
