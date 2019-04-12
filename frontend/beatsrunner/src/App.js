@@ -39,6 +39,37 @@ class App extends Component {
   </Button>
 </Form>
           </Card.Body>
+        </Card >
+
+        <Card style={{backgroundColor: "#FFF0F5"}} className="mt-4">
+          <Card.Title className="m-3">
+            Create an Account
+          </Card.Title>
+
+          <Card.Body>
+            <Form>
+  <Form.Group controlId="formBasicUsername">
+    <Form.Label>Username</Form.Label>
+    <Form.Control type="Username" placeholder="Enter your username" />
+    
+  </Form.Group>
+
+  <Form.Group controlId="formBasicEmail">
+    <Form.Label>Email</Form.Label>
+    <Form.Control type="password" placeholder="Enter your email" />
+  </Form.Group>
+
+
+  <Form.Group controlId="formBasicPassword">
+    <Form.Label>Password</Form.Label>
+    <Form.Control type="password" placeholder="Enter your password" />
+  </Form.Group>
+
+  <Button variant="dark" type="submit">
+    Create Account
+  </Button>
+</Form>
+          </Card.Body>
         </Card>
       </Container>
     );
