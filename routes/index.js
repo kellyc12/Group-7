@@ -120,7 +120,7 @@ router.get('/callback', function(req, res, next) {
   }
 });
 
-router.get('/login', function(req, res) {
+router.get('/login1', function(req, res) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -266,6 +266,35 @@ router.post('/signup', function(req, res, next){
   res.redirect('/')
 
 });
+
+router.get('/login', function(req, res, next) {
+  res.render('login');
+});
+
+router.post('/login', function(req, res, next){
+  uname = req.body.username;
+  password =  req.body.password;
+  console.log(uname);
+  var query = {$and:[{username:uname},{pass: password}]};
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("running-beats");
+
+    dbo.collection("accounts").find(query).toArray(function(err, result) {
+      if (err) throw err;
+    
+      console.log(result);
+      db.close();
+    });
+    console.log(result);
+  });
+
+  res.redirect('/')
+
+});
+
+
 
 
 module.exports = router;
