@@ -15,7 +15,7 @@ var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var mongoose =  require('mongoose')
 //create connection to new or existing database
-mongoose.connect('mongodb://localhost:27017/Account');
+mongoose.connect('mongodb://localhost:27017/Account', { useNewUrlParser: true });
 var dbm =  mongoose.model('Account');
 
 //some helper functions
