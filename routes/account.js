@@ -20,5 +20,6 @@ var Account = new Schema({
 //If you need another mongo collection, simply make another file like this in the models folder!
 
 // Account.plugin(passportLocalMongoose);
-
+// var dbs = mongoose.model("Account", Account);
+// var schema = Account;
 module.exports = mongoose.model("Account", Account);

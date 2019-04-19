@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var spotify = require('./configs.js');
+var db = require('./account.js');
 
 var client_id = spotify.MY_KEY ; // Your client id
 var client_secret = spotify.SECRET_KEY; // Your secret
@@ -12,32 +13,12 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-
+var mongoose =  require('mongoose')
 //create connection to new or existing database
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27017/running-beats";
+mongoose.connect('mongodb://localhost:27017/Account');
+var dbm =  mongoose.model('Account');
 
-MongoClient.connect(url, function(err, db) {
-  if (err) throw err;
-  console.log("Database created!");
-  db.close();
-});
-
-MongoClient.connect(url, function(err, db) {
-  if (err) throw err;
-  var dbo = db.db("running-beats");
-  dbo.createCollection("accounts", function(err, res) {
-    if (err) throw err;
-    console.log("Collection created!");
-    db.close();
-  });
-});
-
-//db creation and link done
-
-
-
-
+//some helper functions
 var generateRandomString = function(length) {
   var text = '';
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -47,6 +28,31 @@ var generateRandomString = function(length) {
   }
   return text;
 };
+
+
+var getUserPass = function(uname, callback) {
+  dbm.findOne({username : uname}, function(err, user){
+    if (err) {
+      callback (err, null);
+    }
+    else {
+      callback (null, user.password);
+    }
+  });
+};
+
+var matchPassword = function(input, dbout) {
+  if (input == dbout) {
+    return true;
+  }
+  else {
+    return false;
+  }
+};
+
+
+
+//end helper functions
 
 
 /* GET home page. */
@@ -239,30 +245,25 @@ router.get('/signup', function(req, res, next) {
 router.post('/signup', function(req, res, next){
   uname = req.body.username;
   emailuser = req.body.email;
-  password =  req.body.password;
+  pass =  req.body.password;
   console.log(uname);
-
-  MongoClient.connect(url, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db("running-beats");
-    var myobj = { username: uname, email: emailuser, pass:  password};
-    dbo.collection("accounts").insertOne(myobj, function(err, res) {
-      if (err) throw err;
-      console.log("1 document inserted");
-      db.close();
-    });
+  
+  
+  //insert user into database
+  var user =  new dbm ({
+    username :  uname,
+    password : pass,
+    email : emailuser
+  });
+  user.save(function (err, dbm){
+    if (err) return console.error(err);
+    console.log(user);
+    console.log("user added");
   });
 
-  MongoClient.connect(url, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db("running-beats");
-    var query = { email: "1234@1234.com" };
-    dbo.collection("accounts").find(query).toArray(function(err, result) {
-      if (err) throw err;
-      console.log(result);
-      db.close();
-    });
-  });
+  //end database things
+
+
   res.redirect('/')
 
 });
@@ -275,22 +276,26 @@ router.post('/login', function(req, res, next){
   uname = req.body.username;
   password =  req.body.password;
   console.log(uname);
-  var query = {$and:[{username:uname},{pass: password}]};
 
-  MongoClient.connect(url, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db("running-beats");
-
-    dbo.collection("accounts").find(query).toArray(function(err, result) {
-      if (err) throw err;
+  dbuser = getUserPass(uname, function(err, dbpass){
+    if (err) {
+      return console.error(err);
+    }
+    else {
+      console.log(dbpass);
+      
+      if (matchPassword(password, dbpass)) {
+        console.log ("logged in");
+        res.redirect('/');
+      }
+      else {
+        console.log ("incorrect login");
+        res.render('login', {error : "Password and Username do not match"})
+      }
     
-      console.log(result);
-      db.close();
-    });
-    console.log(result);
+    }
   });
 
-  res.redirect('/')
 
 });
 
