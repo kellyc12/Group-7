@@ -8,6 +8,7 @@ var Account = new Schema({
   username: String,
   password: String,
   email: String,
+  spotifyID: String,
   valid: Boolean,
   type: String,
   lastLogged: Date,

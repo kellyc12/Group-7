@@ -41,6 +41,25 @@ var getUserPass = function(uname, callback) {
   });
 };
 
+var UsernameExist = function (input, callback) {
+  dbm.find({username : input}, function(err, doc){
+    if (err) {
+      return callback (err, false );
+    }
+    else{ //if there is a user with that username already
+      if (!doc.length){
+        
+        return callback (err, false);
+      }
+      else {
+        console.log(doc);
+        return callback(err, true);
+      }
+      
+    }
+  });
+}
+
 var matchPassword = function(input, dbout) {
   if (input == dbout) {
     return true;
@@ -50,6 +69,15 @@ var matchPassword = function(input, dbout) {
   }
 };
 
+var updateDocSpotifyID = function(uname, value){
+  dbm.findOne({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    doc.spotifyID = value;
+    doc.save();
+  } );
+};
+
+// var getAccessToken = function(spotifyID)
 
 
 //end helper functions
@@ -65,7 +93,12 @@ router.get('/', function(req, res, next) {
 /*testing that authentication */
 
 router.get('/spotify', function (req,res,next){
-  res.render('auth')
+  if (!req.session.user){
+    res.redirect('/login');
+  } else{
+    res.render('auth')
+  }
+  
 });
 
 router.get('/callback', function(req, res, next) {
@@ -98,6 +131,9 @@ router.get('/callback', function(req, res, next) {
 
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
+        //save the users access token and refresh to the session for further use.
+        req.session.atok = access_token;
+        req.session.rtok = refresh_token;
 
         var options = {
           url: 'https://api.spotify.com/v1/me',
@@ -107,15 +143,26 @@ router.get('/callback', function(req, res, next) {
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          console.log(body);
+          var uname = req.session.user;
+          var spotID = body.id;
+        
+          
+          //adds the clients Spotify ID to their mongo doc 
+          updateDocSpotifyID(uname, spotID);
+         
+
+          // console.log(body);
         });
 
+        res.redirect('/sesh');
+
         // we can also pass the token to the browser to make requests from there
-        res.redirect('/user?' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
+
+        // res.redirect('/user?' +
+        //   querystring.stringify({
+        //     access_token: access_token,
+        //     refresh_token: refresh_token
+        //   }));
       } else {
         res.redirect('/#' +
           querystring.stringify({
@@ -126,7 +173,7 @@ router.get('/callback', function(req, res, next) {
   }
 });
 
-router.get('/login1', function(req, res) {
+router.get('/spotifylogin', function(req, res) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -248,23 +295,53 @@ router.post('/signup', function(req, res, next){
   pass =  req.body.password;
   console.log(uname);
   
+  //check if database is empty
+  dbm.count(function (err, count){
+    if (count == 0){
+      
+      var user =  new dbm ({
+        username :  uname,
+        password : pass,
+        email : emailuser
+     });
+      user.save(function (err, dbm){
+       if (err) return console.error(err);
+       console.log(user);
+       console.log("user added");
+      });
+      req.session.user = uname;
+      res.redirect('/spotify')
+    }
+    else {
+      //check to see that username has not already been used
   
-  //insert user into database
-  var user =  new dbm ({
-    username :  uname,
-    password : pass,
-    email : emailuser
+        UsernameExist(uname, function(err, bool){
+        //insert user into database if no one already has that username
+          if (!bool) {
+            var user =  new dbm ({
+            username :  uname,
+            password : pass,
+            email : emailuser
+          });
+            user.save(function (err, dbm){
+               if (err) return console.error(err);
+                 console.log(user);
+                  console.log("user added");
+               });
+          req.session.user = uname;
+          res.redirect('/spotify')
+      }
+           else { //already has a user of that username
+              console.log('Username already in use');
+              res.render("signupform", {error : "That username is already in use. Please try another one."})
+              }
+
+
+        });
+
+    }
+
   });
-  user.save(function (err, dbm){
-    if (err) return console.error(err);
-    console.log(user);
-    console.log("user added");
-  });
-
-  //end database things
-
-
-  res.redirect('/')
 
 });
 
@@ -286,7 +363,9 @@ router.post('/login', function(req, res, next){
       
       if (matchPassword(password, dbpass)) {
         console.log ("logged in");
-        res.redirect('/');
+        req.session.user =  uname;
+
+        res.redirect('/spotifylogin');
       }
       else {
         console.log ("incorrect login");
@@ -299,6 +378,21 @@ router.post('/login', function(req, res, next){
 
 });
 
+
+//test of session things
+router.get('/sesh', function(req, res, next) {
+  if (!req.session.user){
+    return res.status(401).send();
+  }
+  else{
+    name = req.session.user;
+    console.log(name);
+    console.log("access token is");
+    console.log(req.session.atok);
+    res.render('index', {title : name});
+  }
+ 
+});
 
 
 
