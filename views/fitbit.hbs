@@ -1,0 +1,62 @@
+<!doctype html>
+<h1>fitbit oauth test</h1>
+<button id="signin-button" onclick="handleSignInClick()">Sign In</button>
+<button id="signout-button" onclick="handleSignOutClick()">Sign Out</button>
+</html>
+<script>
+var clientid ="45683702140-9d0vb8hu0u8mdlt185cog81cdtf3l2v4.apps.googleusercontent.com"
+var apiKey = "pVE3WZ2Hzg-PeXOM54iwykxI"
+
+// const google = require("googleapis")
+// const oauth2Client = new google.auth.OAuth2(
+//   client_id_google,
+//   client_secret_google,
+//   redirect_uri
+// );
+
+const scopes = [
+  'https://www.googleapis.com/auth/fitness.activity.read'
+  // 'https://www.googleapis.com/auth/fitness.activity.write'
+];
+
+const urlgoogle = oauth2Client.generateAuthUrl({
+  scope: scopes
+  });
+
+function handleClientLoad() {
+  gapi.load('client:auth2', initClient);
+      }
+
+function initClient() {
+        gapi.client.init({
+            apiKey: apiKey,
+            clientId: clientId,
+            scope: scopes
+        }).then(function () {
+          // Listen for sign-in state changes.
+          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+          // Handle the initial sign-in state.
+          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+        });
+      }
+
+      function handleAuthClick(event) {
+
+        gapi.auth2.getAuthInstance().signIn();
+      }
+
+      function makeApiCall() {
+        gapi.client.people.people.get({
+          "https://www.googleapis.com/fitness/v1/users/me/dataSources"
+        }).then(function(resp) {
+          var p = document.createElement('p');
+          var name = resp.result.names[0].givenName;
+          p.appendChild(document.createTextNode('Hello, '+name+'!'));
+          document.getElementById('content').appendChild(p);
+        });
+      }
+</script>
+<script async defer src="https://apis.google.com/js/api.js"
+     onload="this.onload=function(){};handleClientLoad()"
+     onreadystatechange="if (this.readyState === 'complete') this.onload()">
+   </script>

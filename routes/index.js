@@ -1,9 +1,13 @@
 var express = require('express');
 var router = express.Router();
-var spotify = require('./configs.js');
+var keys = require('./configs.js');
 
-var client_id = spotify.MY_KEY ; // Your client id
-var client_secret = spotify.SECRET_KEY; // Your secret
+
+
+var client_id_spotify = keys.MY_KEY ; // Your client id
+var client_secret_spotify = keys.SECRET_KEY; // Your secret
+var client_id_google = keys.CLIENT_ID;
+var client_secret_google= keys.CLIENT_SECRET;
 
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
@@ -34,6 +38,39 @@ MongoClient.connect(url, function(err, db) {
 });
 
 //db creation and link done
+
+//Creating a passport oauth strategy for google fit
+const {google} = require("googleapis")
+const oauth2Client = new google.auth.OAuth2(
+  client_id_google,
+  client_secret_google,
+  redirect_uri
+);
+console.log(oauth2Client)
+const scopes = [
+  'https://www.googleapis.com/auth/fitness.activity.read'
+  // 'https://www.googleapis.com/auth/fitness.activity.write'
+];
+
+const urlgoogle = oauth2Client.generateAuthUrl({
+  scope: scopes
+  });
+
+router.get("/fitbit",function(req,res,next){
+  res.render('fitbit')
+});
+// router.get('oauth/google', function(req, res, next) {
+//   oAuth2Client.getToken(code, (err, token) => {
+//     if (err) return console.error('Error retrieving access token', err);
+//      oAuth2Client.setCredentials(token);
+//      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+//         if (err) return console.error(err);
+//         console.log('Token stored to', TOKEN_PATH);
+//       });
+//       callback(oAuth2Client);
+//       });
+// }) ;
+
 
 
 
@@ -82,7 +119,7 @@ router.get('/callback', function(req, res, next) {
         grant_type: 'authorization_code'
       },
       headers: {
-        'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
+        'Authorization': 'Basic ' + (new Buffer(client_id_spotify + ':' + client_secret_spotify).toString('base64'))
       },
       json: true
     };
@@ -129,7 +166,7 @@ router.get('/login', function(req, res) {
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
-      client_id: client_id,
+      client_id: client_id_spotify,
       scope: scope,
       redirect_uri: redirect_uri,
       state: state
@@ -140,7 +177,7 @@ router.get('/login', function(req, res) {
   // your application requests refresh and access tokens
   // after checking the state parameter
 
-  
+
 
 
 router.get('/refresh_token', function(req, res) {
@@ -149,7 +186,7 @@ router.get('/refresh_token', function(req, res) {
   var refresh_token = req.query.refresh_token;
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
-    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id_sportify + ':' + client_secret_spotify).toString('base64')) },
     form: {
       grant_type: 'refresh_token',
       refresh_token: refresh_token
@@ -178,7 +215,7 @@ router.get('/playlist', function(req, res, next) {
     headers: { 'Authorization': 'Bearer ' + access_token },
     json: true
   };
-  
+
   request.get(options, function(error, response, body) {
     var userID = body.id;
     // var email = body.email;
@@ -188,7 +225,7 @@ router.get('/playlist', function(req, res, next) {
       headers: { 'Authorization' : 'Bearer ' + access_token},
       json: true
     };
-    
+
     request.get (playlist, function(error, response, body) {
       console.log(body);
       var context = body;
@@ -201,7 +238,7 @@ router.get('/playlist', function(req, res, next) {
       else {
         res.render ('getplaylist', {c : context, uid : userID, sec : queer });
       }
-      
+
     });
   });
   // console.log(access_token);
@@ -266,6 +303,21 @@ router.post('/signup', function(req, res, next){
   res.redirect('/')
 
 });
+
+router.get
+// router.get("/fitbit",function(req, res, next){
+//   res.render("fitbit");
+// });
+//
+// router.get('/auth/fitbit',
+//   passport.authenticate('fitbit', { scope: ['activity','heartrate','location','profile'] }
+// ));
+//
+// router.get( '/auth/fitbit/callback', passport.authenticate( 'fitbit', {
+//         successRedirect: '/auth/fitbit/success',
+//         failureRedirect: '/auth/fitbit/failure'
+// }));
+//
 
 
 module.exports = router;
