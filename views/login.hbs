@@ -1,16 +1,34 @@
-{{#if error}}
-<p>{{error}}</p>
-{{/if}}
-<h1>Login here:</h1>
-<form action="/login" method="POST">
+<!DOCTYPE html>
+<html>
+<head>
+   <script language="javascript" src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>       
+    <title>Login</title>
+</head>
 
-						<div class="form-group">
-							<input type="text" class="form-control" placeholder="Username" name="username">
-						</div>
-
-						<div class="form-group">
-							<input type="password" class="form-control" placeholder="Password" name="password">
-						</div>
-
-						<button type="submit" value="Search" class="btn btn-default submit">Login!</button>
-					</form>
+<body>
+   
+<div class="container-fluid h-100">
+    <div class="row justify-content-center align-items-center h-100">
+    
+        <div class="col col-sm-6 col-md-6 col-lg-4 col-xl-3">
+                <h1>Running Beats</h1>
+            <form action="/login" method="POST">
+             <div class="form-group">
+                <label for="Username">Username: </label>
+                <input type="text" class="form-control" placeholder="Username" name="username">
+            </div>
+            <div class="form-group">
+                <label for="Password">Password: </label>
+                <input type="password" class="form-control" placeholder="Password" name="password">
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+             <small id="emailHelp" class="form-text text-muted">Forgot your password? Tough luck.</small>
+            </form>
+        </div>
+    </div>
+</div>
+    <script src="/static/js/jquery.js" charset="utf-8"></script>
+    <script src="/static/js/bootstrap.js" charset="utf-8"></script>
+</body>
+</html>

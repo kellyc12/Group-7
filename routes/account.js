@@ -8,11 +8,12 @@ var Account = new Schema({
   username: String,
   password: String,
   email: String,
+  spotifyID: String,
+  hasPlaylist: Boolean,
+  playlistID : String,
   valid: Boolean,
   type: String,
   lastLogged: Date,
-  access_token: String,
-  refresh_token: String,
   playlist_links:Array
   //Change these around and add more fields that you may need for an account here!!
 });

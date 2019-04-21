@@ -5,8 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var request = require('request'); //"request" library
 var cors = require('cors');
-
-
+var sessions = require('express-session');
+var config = require('./sessconfigs.js');
 
 
 var indexRouter = require('./routes/index');
@@ -19,11 +19,21 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
+app.use(sessions(
+  {
+    secret: config.key,
+    saveUninitialized: false,
+    resave: false
+  }
+));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -43,6 +53,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 
 console.log('Listening on 8888');
