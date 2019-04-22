@@ -2,9 +2,12 @@ var express = require('express');
 var router = express.Router();
 var spotify = require('./configs.js');
 var db = require('./account.js');
+var fitbit = require('./fitbitconfigs');
 
 var client_id = spotify.MY_KEY ; // Your client id
-var client_secret = spotify.SECRET_KEY; // Your secret
+var client_secret = spotify.SECRET_KEY; // Your secret id 
+var fit_id = fitbit.ID;
+var fit_secret = fitbit.SECRET_KEY
 
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
@@ -77,6 +80,38 @@ var updateDocSpotifyID = function(uname, value){
   } );
 };
 
+var updatefitbitrefresh = function(uname, value){
+  dbm.findOne({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    doc.fitbitfresh = value;
+    doc.save();
+  } );
+};
+
+var updatespotifyrefresh = function(uname, value){
+  dbm.findOne({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    doc.spotifyfresh = value;
+    doc.save();
+  } );
+};
+
+var updatefitbitaccess = function(uname, value){
+  dbm.findOne({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    doc.fitbitaccess = value;
+    doc.save();
+  } );
+};
+
+var updatefitbitID = function(uname, value){
+  dbm.findOne({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    doc.fitID = value;
+    doc.save();
+  } );
+};
+
 var generateTempo = function(pace){
   if (pace <= 6){
     return 171;
@@ -122,7 +157,13 @@ var getHasPlaylist = function(uname) {
   return promise;
 };
 
+//promise query for finding the fitbit access token and fitID
+var getfitbitacess = function(uname) {
+  var promise = dbm.findOne({username : uname}).select("fitbitaccess fitID -_id").exec();
+  return promise;
+};
 
+//puts json object into a string format deliminated by , 
 function get_seeds (items, tracks, callback){
   for (var key in items){
     if (items.hasOwnProperty(key)) {
@@ -133,7 +174,7 @@ function get_seeds (items, tracks, callback){
     }
     tracks = tracks.substring(0, tracks.length - 1);
     callback(null, tracks);
-  }
+  };
 
 function get_uris (items, tracks, callback){
   for (var key in items){
@@ -146,7 +187,7 @@ function get_uris (items, tracks, callback){
 
   tracks = tracks.substring(0, tracks.length - 1);
   callback(null, tracks);
-}
+};
 
 
 
@@ -203,25 +244,7 @@ var addToPlay = function (playID, uri,  atok) {
       console.log(body);
     }
   });
-}
-
-
-//uses a list of seed  tracks to generate a  playlist of 30
-// var recommended = function (seeds, atok, minbpm, maxbpm, callback) {
-//   var options = {
-//     url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ seeds + '&limit=30&min_energy=0.5&min_danceability=0.5&min_tempo=' + minbpm + '&max_tempo='  +  maxbpm,
-//     headers: { 'Authorization': 'Bearer ' + atok },
-//     json: true
-//   };
-
-//   request.get(options, function(error, response, body){
-//     if (error)  return console.log(error);
-
-//     console.log(body);
-//   });
-// }
-
-
+};
 
 //
 //end helper functions
@@ -234,7 +257,7 @@ router.get('/', function(req, res, next) {
 
 
 
-/*testing that authentication */
+// Spotify OAuth Trash here:
 
 router.get('/spotify', function (req,res,next){
   if (!req.session.user){
@@ -279,6 +302,9 @@ router.get('/callback', function(req, res, next) {
         req.session.atok = access_token;
         req.session.rtok = refresh_token;
 
+
+       
+
         var options = {
           url: 'https://api.spotify.com/v1/me',
           headers: { 'Authorization': 'Bearer ' + access_token },
@@ -297,6 +323,9 @@ router.get('/callback', function(req, res, next) {
           
           //adds the clients Spotify ID to their mongo doc 
           updateDocSpotifyID(uname, spotID);
+
+          //saves the refresh token to the database
+          updatespotifyrefresh(uname, refresh_token);
          
 
           // console.log(body);
@@ -342,9 +371,6 @@ router.get('/spotifylogin', function(req, res) {
   // your application requests refresh and access tokens
   // after checking the state parameter
 
-  
-
-
 router.get('/refresh_token', function(req, res) {
 
   // requesting access token from refresh token
@@ -368,6 +394,118 @@ router.get('/refresh_token', function(req, res) {
     }
   });
 });
+
+
+//Spotify OAuth Trash ENDS
+
+//Fitbit oAuth Trash START
+
+//this may be unessecary in the future but for testing purposes renders a page with button to start oAuth 
+router.get('/fitbit', function(req, res){
+    res.render('fitbit');
+});
+
+//redirects client to fitbit authorization page
+router.post('/fitbit', function(req, res, next){
+  var scope = 'activity heartrate';
+  res.redirect('https://www.fitbit.com/oauth2/authorize?' +
+    querystring.stringify({
+      response_type: 'code',
+      client_id: fit_id,
+      scope: scope,
+      redirect_uri: 'http://localhost:8888/fitcallback'
+    }));
+});
+
+//the callback page for the fitbit auth
+router.get('/fitcallback', function(req, res, next){
+  var code = req.query.code || null;
+  var uname = req.session.user;
+  
+  //exchange that code for an access token
+  var authOpt = {
+    url: 'https://api.fitbit.com/oauth2/token',
+      form: {
+        code: code,
+        redirect_uri: 'http://localhost:8888/fitcallback',
+        grant_type: 'authorization_code'
+      },
+      headers: {
+        'Authorization': 'Basic ' + (new Buffer(fit_id + ':' + fit_secret).toString('base64'))
+      },
+      json: true
+  };
+
+  request.post(authOpt, function(error, response, body){
+    if (!error && response.statusCode === 200) {
+      //get token back.
+      var access_token = body.access_token,
+          refresh_token = body.refresh_token,
+          user_id = body.user_id   
+
+      //save the access token to the session.
+      req.session.fittok = access_token;
+      req.session.fitid = user_id;
+
+      //save fitbit id to database
+      updatefitbitID(uname, user_id);
+
+      //save access token to the database
+      updatefitbitaccess(uname, refresh_token);
+
+      //save the refresh token to the database
+      updatefitbitrefresh(uname, refresh_token);
+    };
+
+    
+
+    res.redirect('/dash');
+
+  });
+  
+  
+});
+
+router.get('/fitrefresh', function(req, res, next){
+    if (!req.session.user) return res.redirect('/login');
+    uname = req.session.user;
+    //get the refresh token from the database;
+    dbm.findOne({username : uname}, 'fitbitfresh', function(err, doc){
+      if (err) return console.error(err);
+
+      // console.log(doc.fitbitfresh);
+
+      var refresh_token = doc.fitbitfresh;
+      var option = {
+        url: 'https://api.fitbit.com/oauth2/token',
+        headers: { 'Authorization': 'Basic ' + (new Buffer(fit_id + ':' + fit_secret).toString('base64')) },
+        form: {
+          grant_type: 'refresh_token',
+          refresh_token: refresh_token
+        },
+        json: true
+      };
+
+      //request new refresh token
+      request.post(option, function(error,  response, body){
+          var access_token = body.access_token;
+          var new_refresh = body.refresh_token;
+          console.log(access_token);
+         
+
+          //update the refresh token and access token in database
+          updatefitbitrefresh(uname, new_refresh);
+          updatefitbitaccess(uname , access_token);
+          
+      });
+
+
+    });
+
+    res.redirect('/fitbitsession');
+});
+
+
 
 
 /*playing with getting a users playlist once authenticated  */
@@ -540,7 +678,7 @@ router.post('/login', function(req, res, next){
 });
 
 
-//test of session things
+//test of session things. CAN BE DELETED!
 router.get('/sesh', function(req, res, next) {
   if (!req.session.user){
     return res.status(401).send();
@@ -559,7 +697,7 @@ router.get('/sesh', function(req, res, next) {
 });
 
 
-//test bootstrap
+//test bootstrap unessecary now.  CAN BE DELETED
 router.get('/boot' , function(req, res, next){
   res.render("bootstrap");
 });
@@ -571,26 +709,25 @@ router.post('/boot' , function(req, res, next){
 });
 
 
-//test dash tempo playlist generation
+// dash tempo playlist generation
 
 router.get('/dash' , function(req, res, next){
   if (!req.session.user){
     return res.status(401).send();
   }
-  else{
-    console.log("username is");
-    console.log(req.session.user);
-    console.log("access token is");
-    console.log(req.session.atok);
-    console.log('spotify client id')
-    console.log(req.session.spotify);
+  else{ // checks all  session data is stored properly
+    console.log("username is --> "+ req.session.user );
+    console.log("spotify access token is --> " +req.session.atok);
+    console.log('spotify client id --> ' + req.session.spotify);
+    console.log('fitbit access token is --> ' + req.session.fittok);
+    console.log('fitbit client id is --> ' + req.session.fitid);
     return res.render('dashboard')
   }
  
 });
 
 
-
+//Generates a playlist based on 
 router.post('/genplay' , function(req, res, next){
   var pace = req.body.pace;
   var bpm = generateTempo(pace);
@@ -679,6 +816,8 @@ router.post('/genplay' , function(req, res, next){
   
 });
 
+//Getting the spotify ID through the database and saving to the session. After spotify oAuth the client
+//will be redirected here then redirected to dash so all possible session data has been stored
 router.get('/clientid' , function(req, res, next){
 
 var token = req.session.atok;
@@ -699,5 +838,28 @@ var token = req.session.atok;
     res.redirect("/dash");
   });
 });
+
+//Getting fitbit access through database and saving to session.
+
+router.get('/fitbitsession', function(req, res, next){
+  var uname  = req.session.user;
+  //get the data from database
+  var promise = getfitbitacess(uname);
+    promise.then(function(id){
+    var access_token = id.fitbitaccess;
+    var fitID = id.fitID;
+    req.session.fittok = access_token;
+    req.session.fitid = fitID;
+    req.session.save();
+  });  
+
+  
+
+  res.redirect("/dash");
+});
+
+
+
+
 
 module.exports = router;

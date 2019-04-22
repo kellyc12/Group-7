@@ -11,10 +11,14 @@ var Account = new Schema({
   spotifyID: String,
   hasPlaylist: Boolean,
   playlistID : String,
+  spotifyfresh : String,
+  fitbitfresh : String,
+  fitbitaccess : String,
+  fitID : String,
   valid: Boolean,
   type: String,
   lastLogged: Date,
-  playlist_links:Array
+  
   //Change these around and add more fields that you may need for an account here!!
 });
 
