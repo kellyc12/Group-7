@@ -814,13 +814,9 @@ router.post('/genplay' , function(req, res, next){
 
   //find users preferences we are using top 5 tracks.
   var top5 = {
-    url: 'https://api.spotify.com/v1/me/top/tracks?limit=5',
+    url: 'https://api.spotify.com/v1/me/top/tracks?limit=5&time_range=short_term',
     headers: { 'Authorization': 'Bearer ' + atok },
-    json: true,
-    query: {
-      "limit" : "5"
-    }
-    
+    json: true
   };
 
   //need just get a list of top5 trackID's 
@@ -835,7 +831,7 @@ router.post('/genplay' , function(req, res, next){
         //generates the recommendations and puts the 
         
         var recommend = {
-          url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&min_energy=0.5&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
+          url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&target_energy=0.7&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
           headers: { 'Authorization': 'Bearer ' + atok },
           json: true
         };
@@ -973,7 +969,7 @@ router.post('/genpaceplay', function (req, res,  next){
             console.log('no current run data');
           }
           else{ // generate playlist using the same code as using the input
-                var pace = req.body.pace;
+                var pace = val;
                 var bpm = generateTempo(pace);
                 var bpm_min = bpm;
                 var bpm_max = bpm+15;
@@ -988,12 +984,9 @@ router.post('/genpaceplay', function (req, res,  next){
                 
                 //find users preferences we are using top 5 tracks.
                 var top5 = {
-                  url: 'https://api.spotify.com/v1/me/top/tracks?limit=5',
+                  url: 'https://api.spotify.com/v1/me/top/tracks?limit=5&time_range=short_term',
                   headers: { 'Authorization': 'Bearer ' + atok },
-                  json: true,
-                  query: {
-                    "limit" : "5"
-                  }
+                  json: true
                   
                 };
 
@@ -1009,7 +1002,7 @@ router.post('/genpaceplay', function (req, res,  next){
                       //generates the recommendations and puts the 
                       
                       var recommend = {
-                        url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&min_energy=0.5&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
+                        url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&target_energy=0.7&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
                         headers: { 'Authorization': 'Bearer ' + atok },
                         json: true
                       };
