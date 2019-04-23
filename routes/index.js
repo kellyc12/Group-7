@@ -246,6 +246,72 @@ var addToPlay = function (playID, uri,  atok) {
   });
 };
 
+
+//
+//fitbit API helpers
+//
+
+//gets mile time from an activity log
+var mileTime = function (time, distance){
+
+  //time is  in milliseconds so convert  to minutes
+  var min = (time / 60000);
+  var pace  =  (min / distance);
+
+  //round the pace off
+  pace  =  Math.round(pace);
+
+  return pace;
+
+};
+
+//iterate through the items in the activity log
+var getActivities =  function (items, list, callback){
+  for (var key in items){
+    if (items.hasOwnProperty(key)) {
+       var distance = items[key].distance;
+       var time = items[key].duration;
+       var pace = mileTime(time, distance);
+       list.push(pace);
+       
+      } 
+      
+    }
+   
+    callback(null, list);
+  };
+
+  // average mile times in a list 
+  function avgMile (list, sum, callback){
+    var  len = list.length;
+    for (var i = 0; i< len; i++){
+        if (list[i] < 40){
+        sum += list[i];
+      }
+    } 
+    var avg = (sum/len);
+    callback(null, avg);
+
+  };
+
+  // make the api call for daily log
+  function dailylog (date, fitid, fittok) {
+    var options =  {
+      url : 'https://api.fitbit.com/1/user/'+ fitid + '/activities/date/' + date + '.json ',
+      headers: { 'Authorization': 'Bearer ' + fittok,
+      'Accept-Language' : 'en_US'},
+      json: true
+    };
+
+    request.get(options, function(err, response, body){
+      if(err) return console.error(err);
+      console.log('worked');
+      return body;
+    });
+  };
+
+
+
 //
 //end helper functions
 //
@@ -446,6 +512,7 @@ router.get('/fitcallback', function(req, res, next){
       //save the access token to the session.
       req.session.fittok = access_token;
       req.session.fitid = user_id;
+      req.session.save();
 
       //save fitbit id to database
       updatefitbitID(uname, user_id);
@@ -455,11 +522,12 @@ router.get('/fitcallback', function(req, res, next){
 
       //save the refresh token to the database
       updatefitbitrefresh(uname, refresh_token);
+      res.redirect('/dash');
     };
 
     
 
-    res.redirect('/dash');
+    
 
   });
   
@@ -490,19 +558,19 @@ router.get('/fitrefresh', function(req, res, next){
       request.post(option, function(error,  response, body){
           var access_token = body.access_token;
           var new_refresh = body.refresh_token;
-          console.log(access_token);
-         
+          console.log(body.access_token);
+          console.log(body.refresh_token);
 
           //update the refresh token and access token in database
           updatefitbitrefresh(uname, new_refresh);
           updatefitbitaccess(uname , access_token);
-          
+          res.redirect('/fitbitsession');
       });
 
 
     });
 
-    res.redirect('/fitbitsession');
+    
 });
 
 
@@ -713,7 +781,8 @@ router.post('/boot' , function(req, res, next){
 
 router.get('/dash' , function(req, res, next){
   if (!req.session.user){
-    return res.status(401).send();
+    console.log("not logged in.")
+    return res.redirect('/login');
   }
   else{ // checks all  session data is stored properly
     console.log("username is --> "+ req.session.user );
@@ -731,8 +800,8 @@ router.get('/dash' , function(req, res, next){
 router.post('/genplay' , function(req, res, next){
   var pace = req.body.pace;
   var bpm = generateTempo(pace);
-  var bpm_min = bpm-5;
-  var bpm_max = bpm+10;
+  var bpm_min = bpm;
+  var bpm_max = bpm+15;
   console.log(bpm_max + '<--max '  + bpm_min + '<--min');
   var atok  =  req.session.atok;
   var spotID = req.session.spotify;
@@ -816,8 +885,8 @@ router.post('/genplay' , function(req, res, next){
   
 });
 
-//Getting the spotify ID through the database and saving to the session. After spotify oAuth the client
-//will be redirected here then redirected to dash so all possible session data has been stored
+//Getting the spotify ID through the spotify api and saving to the session. After spotify oAuth the client
+//will be redirected here then redirected to fitbit session routes then to dash.
 router.get('/clientid' , function(req, res, next){
 
 var token = req.session.atok;
@@ -830,12 +899,12 @@ var token = req.session.atok;
 
   request.get(options, function(error, response, body){
     var id = body.id;
-    
-    console.log("ahhh");
+  
     req.session.spotify = id;
-    console.log(req.session.spotify);
-    
-    res.redirect("/dash");
+
+    //direct user to get fitbit session refresh. Will not do anything if user has not linked up their account yet. Will then redirect eventually to dashboard.
+    // res.redirect("/fitrefresh");
+    res.redirect('/fitrefresh');
   });
 });
 
@@ -851,15 +920,176 @@ router.get('/fitbitsession', function(req, res, next){
     req.session.fittok = access_token;
     req.session.fitid = fitID;
     req.session.save();
-  });  
+    return res.redirect('/dash');
+  })
+
 
   
-
-  res.redirect("/dash");
 });
 
 
+//another redirect to save the seesion?
+// router.get('/waste', function (req, res,  next){
+//     console.log(req.session.fittok);
+//     console.log(req.session.fitid);
+//     return res.redirect('/dash');
+// });
 
 
+
+//generate playlist with fitbit data
+router.post('/genpaceplay', function (req, res,  next){
+
+  if (!req.session.fittok){  //See if the client has a linked fitbit account if not  redirect to try and link
+    console.log("No fitbit account. Redirect to fitbit OAuth");
+    return res.redirect('/fitbit');
+  }
+  else{
+    //get all variables needed to do the api call
+    var fittok =  req.session.fittok;
+    var fitid = req.session.fitid;
+    var today = new Date();
+    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+
+    var options =  {
+      url : 'https://api.fitbit.com/1/user/'+ fitid + '/activities/date/' + date + '.json ',
+      headers: { 'Authorization': 'Bearer ' + fittok,
+      'Accept-Language' : 'en_US'},
+      json: true
+    };
+
+    request.get(options, function(err, res, body){
+      if (err) return console.error(err);
+      var list = [];
+      var act =  body.activities;
+
+      //go through each activity logged for the day and pull the time and distance
+      var test = getActivities(act, list, function(err, final){
+        console.log(final);
+        var sum = 0;
+        var avg = avgMile(final, sum, (function (err, val){
+          console.log(val);
+          if (val == 0){ //no run data for today
+            console.log('no current run data');
+          }
+          else{ // generate playlist using the same code as using the input
+                var pace = req.body.pace;
+                var bpm = generateTempo(pace);
+                var bpm_min = bpm;
+                var bpm_max = bpm+15;
+                console.log(bpm_max + '<--max '  + bpm_min + '<--min');
+                var atok  =  req.session.atok;
+                var spotID = req.session.spotify;
+                var uname = req.session.user;
+
+                //Create an empty playlist to populate
+                // TODO: change this to replace playlist tracks if the db attribute hasPlaylist is true 
+                createPlaylist(spotID, atok, uname);
+                
+                //find users preferences we are using top 5 tracks.
+                var top5 = {
+                  url: 'https://api.spotify.com/v1/me/top/tracks?limit=5',
+                  headers: { 'Authorization': 'Bearer ' + atok },
+                  json: true,
+                  query: {
+                    "limit" : "5"
+                  }
+                  
+                };
+
+                //need just get a list of top5 trackID's 
+                request.get(top5, function(error,  response,  body) {
+                  if (error) return console.log(error);
+                    console.log(body);
+                    var seed_tracks = "";
+                    var items = body.items;
+                    //gets the seed tracks ids in list
+                    var track = get_seeds(items, seed_tracks, function (err, tracks){
+                      // console.log(tracks);
+                      //generates the recommendations and puts the 
+                      
+                      var recommend = {
+                        url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&min_energy=0.5&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
+                        headers: { 'Authorization': 'Bearer ' + atok },
+                        json: true
+                      };
+
+                      request.get(recommend, function(error, response, body){
+                        if (error)  return console.log(error);
+                        var item = body.tracks;
+                        //getting that list of recommended tracks
+                        var addtracks = '';
+                        var addTo =  get_uris(item,  addtracks, function (err, fTracks){
+                         
+                          //first get the playlist ID back from mongo. 
+                          var promise = getPlaylistID(uname);
+                    
+                          promise.then(function(id){
+                            var playID = id.playlistID;
+                            // console.log(playID);
+              
+                            //now populate the playlist
+                            addToPlay(playID, fTracks, atok);
+                            
+                            //use spotify playlist ID to get link
+                            var playlist = {
+                              url: 'https://api.spotify.com/v1/playlists/'+playID,
+                              headers: { 'Authorization': 'Bearer ' + atok },
+                              json: true,
+                            };
+
+                            request.get(playlist, function(error, response, body){
+                              if (error) return console.log(error);
+                              url = body.external_urls;
+                              console.log(url);
+                              //TODO: display spotify playlist somehow? or send url.
+                              
+                            });
+              
+                          });
+              
+              
+                        });
+                      });
+              
+              
+                    });
+              
+                });
+                
+          }  // end of the else for generating playlist
+        }));
+
+        
+      });
+ 
+      
+    });
+     
+  }  //end of first else
+  res.redirect('/dash');
+ 
+});
+
+//test functions page
+router.get('/testfunc' , function(req, res,  next){
+
+    var dist =  2.2;
+    var time = 1200000;
+
+  
+    console.log( mileTime(time, dist));
+
+    return res.render('index');
+});
+
+//for funsies.
+router.get('/strugs2func',  function(req, res, next){
+
+  var ughhhh = "Kelly Chiang is:"
+
+  res.render('easteregg', {text : ughhhh});
+
+})
 
 module.exports = router;
