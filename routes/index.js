@@ -1063,7 +1063,7 @@ router.post('/genpaceplay', function (req, res,  next){
 
 });
 router.get("/logout", function(req, res) {
-  req.session = null
+  req.session.user = null;
   req.logout();
   res.redirect("/login");
 });
