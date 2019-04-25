@@ -2,32 +2,27 @@
 <html>
 <head>
    <script language="javascript" src="js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="css/bootstrap.min.css"/>       
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <title>Tempo</title>
 </head>
 
-<body>
-   
-<div class="container-fluid h-100">
+<body style="background-color:LavenderBlush">
+
+<div class="container-fluid h-100" <div class="container-fluid h-100" >>
     <div class = "row justify-content-center">
         <h1>Average Mile Time:</h1>
     </div>
-    
+
     <div class="row justify-content-center align-items-center h-100">
-    
+
         <div class="col col-sm-6 col-md-6 col-lg-4 col-xl-3">
-                
+
             <form action="/genplay" method="POST">
              <div class="form-group">
                 <input type="number" min = "0" class="form-control" placeholder="Minutes" name="pace">
             </div>
-            <button type="submit" class="btn btn-primary">Generate Playlist</button>
-            </form>
-            <p></p>
-            <p>Or generate playlist with your fitbit data: </p>
-            <form action="/genpaceplay" method="POST">
-            <button type="submit" class="btn btn-primary">Generate Playlist</button>
-            </form>
+            <button type="submit" class="btn" style="background-color:PaleTurquoise">Generate Playlist</button>
+
         </div>
     </div>
 </div>
