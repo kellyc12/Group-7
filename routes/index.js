@@ -13,7 +13,6 @@ var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 var stateKey = 'spotify_auth_state';
 var querystring = require('querystring');
 var request = require('request'); // "Request" library
-var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var mongoose =  require('mongoose')
@@ -965,7 +964,7 @@ router.post('/genpaceplay', function (req, res,  next){
         var sum = 0;
         var avg = avgMile(final, sum, (function (err, val){
           console.log(val);
-          if (val == 0){ //no run data for today
+          if (isNaN(val)){ //no run data for today
             console.log('no current run data');
           }
           else{ // generate playlist using the same code as using the input

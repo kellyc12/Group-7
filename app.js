@@ -4,7 +4,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var request = require('request'); //"request" library
-var cors = require('cors');
 var sessions = require('express-session');
 var config = require('./sessconfigs.js');
 
