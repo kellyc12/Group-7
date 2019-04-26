@@ -15,6 +15,7 @@ var Account = new Schema({
   fitbitfresh : String,
   fitbitaccess : String,
   fitID : String,
+  playlisturl : String,
   valid: Boolean,
   type: String,
   lastLogged: Date,

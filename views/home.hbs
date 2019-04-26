@@ -82,7 +82,7 @@
     <!-- Sidebar -->
     <ul class="sidebar navbar-nav">
       <li class="nav-item active">
-        <a class="nav-link" href="index.html">
+        <a class="nav-link" href="home">
           <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Dashboard</span>
         </a>
@@ -97,8 +97,7 @@
         <div class="dropdown-menu" aria-labelledby="pagesDropdown">
           <h6 class="dropdown-header">Generate Using:</h6>
           <a class="dropdown-item" href="dash">Input miles</a>
-
-          <a class="dropdown-item" href="dash">Fitbit</a>
+          <a class="dropdown-item" href="genpaceplay">Fitbit</a>
 
         </div>
         
@@ -111,7 +110,7 @@
       </li>
       -->
       <li class="nav-item">
-        <a class="nav-link" href="tables.html">
+        <a class="nav-link" href="fitbit">
           <i class="fas fa-fw fa-running"></i>
           <span>Fitbit</span>
         </a>
@@ -134,18 +133,28 @@
           </li>
           <li class="breadcrumb-item active">Overview</li>
         </ol>
-
         <!-- Spotify Playlist-->
         <div class="card mb-3">
           <div class="card-header">
             <i class="fas fa-music"></i>
-            Running Beats Playlist</div>
-            <iframe src="https://open.spotify.com/embed/album/1DFixLWuPkv3KT3TnV35m3" width="100%" height="300" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            Running Beats Playlist </div>
+            {{#if url}}
+            <iframe src={{url}}  width="100%" height="300" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            {{else}}
+            <div class="alert alert-info" role="alert">
+                   No spotify playlist created yet! Use the generate playlist option on the sidebar to create your playlist
+              </div>   
+            {{/if}}
         <!-- DataTables Example -->
         <div class="card mb-3">
           <div class="card-header">
             <i class="fas fa-table"></i>
-            User Data</div>
+            Fitbit Data</div>
+            {{#unless steps }}
+              <div class="alert alert-info" role="alert">
+                    No Fitbit account linked! Link your Fitbit using the Fitbit option on the sidebar.
+              </div>   
+            {{/unless}}   
           <div class="card-body">
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -162,13 +171,7 @@
                 <tbody>
                   <tr>
                     <td>{{steps}}</td>
-                    <td>{{distance}} mi</td>
-                    <td>{{activeminutes}}</td>
-                    <td>{{calories}}</td>
-                  </tr>
-                  <tr>
-                    <td>{{steps}}</td>
-                    <td>{{distance}} mi</td>
+                    <td>{{#if distance}}{{distance}} mi {{/if}}</td>
                     <td>{{activeminutes}}</td>
                     <td>{{calories}}</td>
                   </tr>
@@ -176,7 +179,7 @@
               </table>
             </div>
           </div>
-          <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+          <div class="card-footer small text-muted">Data last updated: {{date}} </div>
         </div>
 
       </div>
@@ -215,7 +218,7 @@
         <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
         <div class="modal-footer">
           <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-          <a class="btn btn-primary" href="#">Logout</a>
+          <a class="btn btn-primary" href="logout">Logout</a>
         </div>
       </div>
     </div>
