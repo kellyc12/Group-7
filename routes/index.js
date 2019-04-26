@@ -62,6 +62,24 @@ var UsernameExist = function (input, callback) {
   });
 }
 
+
+var getSpotifyURL = function (uname, callback) {
+  dbm.find({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    else{ 
+      if (!doc.length){
+        return callback (err, null);
+      }
+      else {
+        console.log(doc.playlisturl);
+        var url = doc.playlisturl
+        return callback(err, url);
+      }
+
+    }
+  });
+}
+
 var matchPassword = function(input, dbout) {
   if (input == dbout) {
     return true;
@@ -107,6 +125,14 @@ var updatefitbitID = function(uname, value){
   dbm.findOne({username : uname}, function(err, doc){
     if (err) return console.error(err);
     doc.fitID = value;
+    doc.save();
+  } );
+};
+
+var updatespotifyurl = function(uname, value){
+  dbm.findOne({username : uname}, function(err, doc){
+    if (err) return console.error(err);
+    doc.playlisturl = value;
     doc.save();
   } );
 };
@@ -159,6 +185,11 @@ var getHasPlaylist = function(uname) {
 //promise query for finding the fitbit access token and fitID
 var getfitbitacess = function(uname) {
   var promise = dbm.findOne({username : uname}).select("fitbitaccess fitID -_id").exec();
+  return promise;
+};
+
+var getURL = function (uname){
+  var promise =  dbm.findOne({username : uname}).select("playlisturl -_id").exec();
   return promise;
 };
 
@@ -308,6 +339,8 @@ var getActivities =  function (items, list, callback){
       return body;
     });
   };
+
+
 
 
 
@@ -699,9 +732,80 @@ router.post('/signup', function(req, res, next){
   });
 
 });
+
 router.get('/home', function(req, res, next) {
-  res.render('home');
+  if (!req.session.user){
+    res.redirect('/login');
+  }
+  
+    var uname = req.session.user;
+    var promise = getPlaylistID(uname);
+    promise.then(function(id){
+      if (id.playlistID == null){
+        return null;
+      }
+        var link = 'https://open.spotify.com/embed/playlist/' +id.playlistID;
+        return link
+        
+    }).then(function(id){
+      console.log(id);
+      var today = new Date();
+      if (!req.session.fitid){ //no fitbit linked
+        return res.render('home', {url :  id, date : today});
+      }
+      //get fitbit data if possible
+      else{
+          
+          var fitid = req.session.fitid;
+          var fittok = req.session.fittok;
+          var options =  {
+            url : 'https://api.fitbit.com/1/user/'+ fitid + '/activities/date/today.json ',
+            headers: { 'Authorization': 'Bearer ' + fittok,
+            'Accept-Language' : 'en_US'},
+            json: true
+          };
+
+          request.get(options, function(err, response, body){
+            if (err) return console.error(err);
+            
+            var summary = body.summary;
+            var step = summary.steps;
+            var activemin = summary.veryActiveMinutes;
+            var activecalor = summary.activityCalories;
+            
+            var options2 =  {
+              url : 'https://api.fitbit.com/1/user/'+ fitid + '/activities/distance/date/today/1d.json ',
+              headers: { 'Authorization': 'Bearer ' + fittok,
+              'Accept-Language' : 'en_US'},
+              json: true
+            };
+
+            request.get(options2, function(error, response, body){
+              if (err) return console.error(err);
+              var distance = JSON.stringify(body);
+              distance = (distance.substring('{"activities-distance":[{"dateTime":"2019-04-25","value":"'.length));
+              distance = distance.substring(0, distance.length- 4);
+              var  intDist = parseFloat(distance).toFixed(2);
+
+              res.render('home', {url :  id, date : today, steps: step, activeminutes : activemin, calories: activecalor, distance :  intDist});
+
+            });
+            
+            
+            
+            
+          });
+         
+         
+      }
+      
+    });
+  
+    
+  
+  
 });
+
 router.get('/login', function(req, res, next) {
   res.render('login');
 });
@@ -766,16 +870,6 @@ router.get('/sesh', function(req, res, next) {
 });
 
 
-//test bootstrap unessecary now.  CAN BE DELETED
-router.get('/boot' , function(req, res, next){
-  res.render("bootstrap");
-});
-
-router.post('/boot' , function(req, res, next){
-  console.log(req.body.username);
-  console.log(req.body.password);
-  res.redirect('/')
-});
 
 
 // dash tempo playlist generation
@@ -863,14 +957,17 @@ router.post('/genplay' , function(req, res, next){
               request.get(playlist, function(error, response, body){
                 if (error) return console.log(error);
                 url = body.external_urls;
-                console.log(url);
+                console.log( "this is url : "  + url.spotify);
+                var spot = url.spotify;
                 //TODO: display spotify playlist somehow? or send url.
-                res.redirect('/dash');
+                updatespotifyurl(uname,  spot);
+
+                res.redirect('/home');
               });
 
             });
 
-
+            
           });
         });
 
@@ -917,7 +1014,7 @@ router.get('/fitbitsession', function(req, res, next){
     req.session.fittok = access_token;
     req.session.fitid = fitID;
     req.session.save();
-    return res.redirect('/dash');
+    return res.redirect('/home');
   })
 
 
@@ -925,17 +1022,10 @@ router.get('/fitbitsession', function(req, res, next){
 });
 
 
-//another redirect to save the seesion?
-// router.get('/waste', function (req, res,  next){
-//     console.log(req.session.fittok);
-//     console.log(req.session.fitid);
-//     return res.redirect('/dash');
-// });
-
 
 
 //generate playlist with fitbit data
-router.post('/genpaceplay', function (req, res,  next){
+router.get('/genpaceplay', function (req, res,  next){
 
   if (!req.session.fittok){  //See if the client has a linked fitbit account if not  redirect to try and link
     console.log("No fitbit account. Redirect to fitbit OAuth");
@@ -1037,7 +1127,7 @@ router.post('/genpaceplay', function (req, res,  next){
                               url = body.external_urls;
                               console.log(url);
                               //TODO: display spotify playlist somehow? or send url.
-
+                              
                             });
 
                           });
@@ -1061,7 +1151,7 @@ router.post('/genpaceplay', function (req, res,  next){
     });
 
   }  //end of first else
-  res.redirect('/dash');
+  res.redirect('/home');
 
 });
 router.get("/logout", function(req, res) {
