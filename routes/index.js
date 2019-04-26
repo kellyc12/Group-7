@@ -554,7 +554,7 @@ router.get('/fitcallback', function(req, res, next){
 
       //save the refresh token to the database
       updatefitbitrefresh(uname, refresh_token);
-      res.redirect('/dash');
+      res.redirect('/home');
     };
 
 
@@ -1156,7 +1156,7 @@ router.get('/genpaceplay', function (req, res,  next){
 });
 router.get("/logout", function(req, res) {
   req.session.user = null;
-  req.logout();
+  // req.logout();
   res.redirect("/login");
 });
 
@@ -1174,10 +1174,17 @@ router.get('/testfunc' , function(req, res,  next){
 
 //for funsies.
 router.get('/strugs2func',  function(req, res, next){
+  if (req.session.user){
+    var name = req.session.user;
+    var ugh = " is: "
+    res.render('easteregg', {text : ugh, name : name});
+  }
+  else{
+    var name = "Anon";
+    var ugh = " is:";
+    res.render('easteregg', {text : ugh, name : name});
+  }
 
-  var ughhhh = "Kelly Chiang is:"
-
-  res.render('easteregg', {text : ughhhh});
 
 })
 
