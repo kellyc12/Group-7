@@ -505,44 +505,44 @@ router.get('/fitbit', function(req, res){
 
 //redirects client to fitbit authorization page
 router.post('/fitbit', function(req, res, next){
-  var scope = 'activity heartrate';
+  var scope = 'activity heartrate'; //scope and what type of data you need access to send this data in the res redirect
   res.redirect('https://www.fitbit.com/oauth2/authorize?' +
     querystring.stringify({
-      response_type: 'code',
-      client_id: fit_id,
+      response_type: 'code', //to get the code that will eventually get your access token
+      client_id: fit_id, // your fitbit client id
       scope: scope,
-      redirect_uri: 'http://localhost:8888/fitcallback'
+      redirect_uri: 'http://localhost:8888/fitcallback'   //redirects to your callback route
     }));
 });
 
 //the callback page for the fitbit auth
 router.get('/fitcallback', function(req, res, next){
-  var code = req.query.code || null;
-  var uname = req.session.user;
+  var code = req.query.code || null;  //the redirect from fitbit will send back the auth code in the URL so use req query to get code 
+  var uname = req.session.user; 
 
   //exchange that code for an access token
   var authOpt = {
-    url: 'https://api.fitbit.com/oauth2/token',
+    url: 'https://api.fitbit.com/oauth2/token',  //end point for exchange
       form: {
         code: code,
-        redirect_uri: 'http://localhost:8888/fitcallback',
-        grant_type: 'authorization_code'
+        redirect_uri: 'http://localhost:8888/fitcallback',  //your redirect url route
+        grant_type: 'authorization_code'    
       },
       headers: {
-        'Authorization': 'Basic ' + (new Buffer(fit_id + ':' + fit_secret).toString('base64'))
+        'Authorization': 'Basic ' + (new Buffer(fit_id + ':' + fit_secret).toString('base64')) //must use this 
       },
       json: true
   };
 
-  request.post(authOpt, function(error, response, body){
-    if (!error && response.statusCode === 200) {
-      //get token back.
-      var access_token = body.access_token,
-          refresh_token = body.refresh_token,
+  request.post(authOpt, function(error, response, body){ //use the configs (authOpt) to request an access token
+    if (!error && response.statusCode === 200) { //if not an error
+      //get token back. The token is in the body.
+      var access_token = body.access_token, 
+          refresh_token = body.refresh_token, //save this for a user who has already been authenticated
           user_id = body.user_id
 
-      //save the access token to the session.
-      req.session.fittok = access_token;
+      //save the access token to the session. 
+      req.session.fittok = access_token; 
       req.session.fitid = user_id;
       req.session.save();
 
@@ -554,7 +554,7 @@ router.get('/fitcallback', function(req, res, next){
 
       //save the refresh token to the database
       updatefitbitrefresh(uname, refresh_token);
-      res.redirect('/home');
+      res.redirect('/home'); //redirect to homepage
     };
 
 
@@ -566,6 +566,7 @@ router.get('/fitcallback', function(req, res, next){
 
 });
 
+//for users who already have linked fitbit account. Use refresh token to exchange for new access token and save that
 router.get('/fitrefresh', function(req, res, next){
     if (!req.session.user) return res.redirect('/login');
     uname = req.session.user;
