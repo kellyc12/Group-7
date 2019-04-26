@@ -1010,7 +1010,8 @@ router.get('/fitbitsession', function(req, res, next){
   //get the data from database
   var promise = getfitbitacess(uname);
     promise.then(function(id){
-      if (!id.length){
+      console.log(id);
+      if (!typeof id.fitID === 'undefined'){
         console.log("is this working?");
         return res.redirect('/home');
       }
