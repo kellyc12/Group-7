@@ -751,6 +751,7 @@ router.get('/home', function(req, res, next) {
       console.log(id);
       var today = new Date();
       if (!req.session.fitid){ //no fitbit linked
+        console.log("No fitbit account route");
         return res.render('home', {url :  id, date : today});
       }
       //get fitbit data if possible
@@ -1009,6 +1010,10 @@ router.get('/fitbitsession', function(req, res, next){
   //get the data from database
   var promise = getfitbitacess(uname);
     promise.then(function(id){
+      if (!id.length){
+        console.log("is this working?");
+        return res.redirect('/home');
+      }
     var access_token = id.fitbitaccess;
     var fitID = id.fitID;
     req.session.fittok = access_token;
