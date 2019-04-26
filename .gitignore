@@ -1,6 +1,7 @@
 configs.js
 
-node_modules/
+node_modules/*
+!node_modules/bootstrap
 
 sessconfigs.js
 
