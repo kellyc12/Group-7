@@ -5,7 +5,7 @@ var db = require('./account.js');
 var fitbit = require('./fitbitconfigs');
 
 var client_id = spotify.MY_KEY ; // Your client id
-var client_secret = spotify.SECRET_KEY; // Your secret id 
+var client_secret = spotify.SECRET_KEY; // Your secret id
 var fit_id = fitbit.ID;
 var fit_secret = fitbit.SECRET_KEY
 
@@ -50,14 +50,14 @@ var UsernameExist = function (input, callback) {
     }
     else{ //if there is a user with that username already
       if (!doc.length){
-        
+
         return callback (err, false);
       }
       else {
         console.log(doc);
         return callback(err, true);
       }
-      
+
     }
   });
 }
@@ -162,14 +162,14 @@ var getfitbitacess = function(uname) {
   return promise;
 };
 
-//puts json object into a string format deliminated by , 
+//puts json object into a string format deliminated by ,
 function get_seeds (items, tracks, callback){
   for (var key in items){
     if (items.hasOwnProperty(key)) {
        var id = items[key].id;
        console.log(key + " -> " + items[key].id);
        tracks += (id + ",");
-      } 
+      }
     }
     tracks = tracks.substring(0, tracks.length - 1);
     callback(null, tracks);
@@ -181,7 +181,7 @@ function get_uris (items, tracks, callback){
         var id = items[key].uri;
         console.log(key + " -> " + items[key].uri);
         tracks += (id + ",");
-       } 
+       }
      }
 
   tracks = tracks.substring(0, tracks.length - 1);
@@ -206,7 +206,7 @@ var createPlaylist = function (userID, atok, uname) {
 
           "name": "Running Beats",
           "public": true
-        
+
       }
     };
     request.post(options, function(error,  response,  body){
@@ -272,22 +272,22 @@ var getActivities =  function (items, list, callback){
        var time = items[key].duration;
        var pace = mileTime(time, distance);
        list.push(pace);
-       
-      } 
-      
+
+      }
+
     }
-   
+
     callback(null, list);
   };
 
-  // average mile times in a list 
+  // average mile times in a list
   function avgMile (list, sum, callback){
     var  len = list.length;
     for (var i = 0; i< len; i++){
         if (list[i] < 40){
         sum += list[i];
       }
-    } 
+    }
     var avg = (sum/len);
     callback(null, avg);
 
@@ -317,7 +317,7 @@ var getActivities =  function (items, list, callback){
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', {title : 'Express'});
+  res.render('login');
 });
 
 
@@ -330,7 +330,7 @@ router.get('/spotify', function (req,res,next){
   } else{
     res.render('auth')
   }
-  
+
 });
 
 router.get('/callback', function(req, res, next) {
@@ -368,7 +368,7 @@ router.get('/callback', function(req, res, next) {
         req.session.rtok = refresh_token;
 
 
-       
+
 
         var options = {
           url: 'https://api.spotify.com/v1/me',
@@ -381,17 +381,17 @@ router.get('/callback', function(req, res, next) {
           var uname = req.session.user;
           var spotID = body.id;
           // req.session.spotify = spotID;
-          
 
-         
-          
-          
-          //adds the clients Spotify ID to their mongo doc 
+
+
+
+
+          //adds the clients Spotify ID to their mongo doc
           updateDocSpotifyID(uname, spotID);
 
           //saves the refresh token to the database
           updatespotifyrefresh(uname, refresh_token);
-         
+
 
           // console.log(body);
         });
@@ -465,7 +465,7 @@ router.get('/refresh_token', function(req, res) {
 
 //Fitbit oAuth Trash START
 
-//this may be unessecary in the future but for testing purposes renders a page with button to start oAuth 
+//this may be unessecary in the future but for testing purposes renders a page with button to start oAuth
 router.get('/fitbit', function(req, res){
     res.render('fitbit');
 });
@@ -486,7 +486,7 @@ router.post('/fitbit', function(req, res, next){
 router.get('/fitcallback', function(req, res, next){
   var code = req.query.code || null;
   var uname = req.session.user;
-  
+
   //exchange that code for an access token
   var authOpt = {
     url: 'https://api.fitbit.com/oauth2/token',
@@ -506,7 +506,7 @@ router.get('/fitcallback', function(req, res, next){
       //get token back.
       var access_token = body.access_token,
           refresh_token = body.refresh_token,
-          user_id = body.user_id   
+          user_id = body.user_id
 
       //save the access token to the session.
       req.session.fittok = access_token;
@@ -524,13 +524,13 @@ router.get('/fitcallback', function(req, res, next){
       res.redirect('/dash');
     };
 
-    
 
-    
+
+
 
   });
-  
-  
+
+
 });
 
 router.get('/fitrefresh', function(req, res, next){
@@ -569,7 +569,7 @@ router.get('/fitrefresh', function(req, res, next){
 
     });
 
-    
+
 });
 
 
@@ -585,7 +585,7 @@ router.get('/playlist', function(req, res, next) {
     headers: { 'Authorization': 'Bearer ' + access_token },
     json: true
   };
-  
+
   request.get(options, function(error, response, body) {
     var userID = body.id;
     // var email = body.email;
@@ -595,7 +595,7 @@ router.get('/playlist', function(req, res, next) {
       headers: { 'Authorization' : 'Bearer ' + access_token},
       json: true
     };
-    
+
     request.get (playlist, function(error, response, body) {
       console.log(body);
       var context = body;
@@ -608,7 +608,7 @@ router.get('/playlist', function(req, res, next) {
       else {
         res.render ('getplaylist', {c : context, uid : userID, sec : queer });
       }
-      
+
     });
   });
   // console.log(access_token);
@@ -648,11 +648,11 @@ router.post('/signup', function(req, res, next){
   emailuser = req.body.email;
   pass =  req.body.password;
   console.log(uname);
-  
+
   //check if database is empty
   dbm.count(function (err, count){
     if (count == 0){
-      
+
       var user =  new dbm ({
         username :  uname,
         password : pass,
@@ -669,7 +669,7 @@ router.post('/signup', function(req, res, next){
     }
     else {
       //check to see that username has not already been used
-  
+
         UsernameExist(uname, function(err, bool){
         //insert user into database if no one already has that username
           if (!bool) {
@@ -699,7 +699,9 @@ router.post('/signup', function(req, res, next){
   });
 
 });
-
+router.get('/home', function(req, res, next) {
+  res.render('home');
+});
 router.get('/login', function(req, res, next) {
   res.render('login');
 });
@@ -715,14 +717,14 @@ router.post('/login', function(req, res, next){
     }
     else {
       console.log(dbpass);
-      
+
       if (matchPassword(password, dbpass)) {
         console.log ("logged in");
         req.session.user =  uname;
-        
-        //get SpotifyID to save in session 
+
+        //get SpotifyID to save in session
         // var promise = getSpotIDP(uname);
-      
+
         // promise.then(function(id){
         //   var spotID = id.spotifyID;
         //   req.session.spotify = spotID;
@@ -737,7 +739,7 @@ router.post('/login', function(req, res, next){
         console.log ("incorrect login");
         res.render('login', {error : "Password and Username do not match"})
       }
-    
+
     }
   });
 
@@ -752,7 +754,7 @@ router.get('/sesh', function(req, res, next) {
   }
   else{
     name = req.session.user;
-  
+
     console.log(name);
     console.log("access token is");
     console.log(req.session.atok);
@@ -760,7 +762,7 @@ router.get('/sesh', function(req, res, next) {
     console.log(req.session.spotify);
     res.render('index', {title : name});
   }
- 
+
 });
 
 
@@ -791,11 +793,11 @@ router.get('/dash' , function(req, res, next){
     console.log('fitbit client id is --> ' + req.session.fitid);
     return res.render('dashboard')
   }
- 
+
 });
 
 
-//Generates a playlist based on 
+//Generates a playlist based on
 router.post('/genplay' , function(req, res, next){
   var pace = req.body.pace;
   var bpm = generateTempo(pace);
@@ -807,7 +809,7 @@ router.post('/genplay' , function(req, res, next){
   var uname = req.session.user;
 
   //Create an empty playlist to populate
-  // TODO: change this to replace playlist tracks if the db attribute hasPlaylist is true 
+  // TODO: change this to replace playlist tracks if the db attribute hasPlaylist is true
   createPlaylist(spotID, atok, uname);
 
 
@@ -818,7 +820,7 @@ router.post('/genplay' , function(req, res, next){
     json: true
   };
 
-  //need just get a list of top5 trackID's 
+  //need just get a list of top5 trackID's
   request.get(top5, function(error,  response,  body) {
     if (error) return console.log(error);
       console.log(body);
@@ -827,8 +829,8 @@ router.post('/genplay' , function(req, res, next){
       //gets the seed tracks ids in list
       var track = get_seeds(items, seed_tracks, function (err, tracks){
         // console.log(tracks);
-        //generates the recommendations and puts the 
-        
+        //generates the recommendations and puts the
+
         var recommend = {
           url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&target_energy=0.7&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
           headers: { 'Authorization': 'Bearer ' + atok },
@@ -841,17 +843,17 @@ router.post('/genplay' , function(req, res, next){
           //getting that list of recommended tracks
           var addtracks = '';
           var addTo =  get_uris(item,  addtracks, function (err, fTracks){
-           
-            //first get the playlist ID back from mongo. 
+
+            //first get the playlist ID back from mongo.
             var promise = getPlaylistID(uname);
-      
+
             promise.then(function(id){
               var playID = id.playlistID;
               // console.log(playID);
 
               //now populate the playlist
               addToPlay(playID, fTracks, atok);
-              
+
               //use spotify playlist ID to get link
               var playlist = {
                 url: 'https://api.spotify.com/v1/playlists/'+playID,
@@ -876,8 +878,8 @@ router.post('/genplay' , function(req, res, next){
       });
 
   });
-  
-  
+
+
 });
 
 //Getting the spotify ID through the spotify api and saving to the session. After spotify oAuth the client
@@ -894,7 +896,7 @@ var token = req.session.atok;
 
   request.get(options, function(error, response, body){
     var id = body.id;
-  
+
     req.session.spotify = id;
 
     //direct user to get fitbit session refresh. Will not do anything if user has not linked up their account yet. Will then redirect eventually to dashboard.
@@ -919,7 +921,7 @@ router.get('/fitbitsession', function(req, res, next){
   })
 
 
-  
+
 });
 
 
@@ -978,18 +980,18 @@ router.post('/genpaceplay', function (req, res,  next){
                 var uname = req.session.user;
 
                 //Create an empty playlist to populate
-                // TODO: change this to replace playlist tracks if the db attribute hasPlaylist is true 
+                // TODO: change this to replace playlist tracks if the db attribute hasPlaylist is true
                 createPlaylist(spotID, atok, uname);
-                
+
                 //find users preferences we are using top 5 tracks.
                 var top5 = {
                   url: 'https://api.spotify.com/v1/me/top/tracks?limit=5&time_range=short_term',
                   headers: { 'Authorization': 'Bearer ' + atok },
                   json: true
-                  
+
                 };
 
-                //need just get a list of top5 trackID's 
+                //need just get a list of top5 trackID's
                 request.get(top5, function(error,  response,  body) {
                   if (error) return console.log(error);
                     console.log(body);
@@ -998,8 +1000,8 @@ router.post('/genpaceplay', function (req, res,  next){
                     //gets the seed tracks ids in list
                     var track = get_seeds(items, seed_tracks, function (err, tracks){
                       // console.log(tracks);
-                      //generates the recommendations and puts the 
-                      
+                      //generates the recommendations and puts the
+
                       var recommend = {
                         url: 'https://api.spotify.com/v1/recommendations?seed_tracks='+ tracks + '&limit=30&target_energy=0.7&min_danceability=0.5&min_tempo=' + bpm_min + '&max_tempo='  +  bpm_max,
                         headers: { 'Authorization': 'Bearer ' + atok },
@@ -1012,17 +1014,17 @@ router.post('/genpaceplay', function (req, res,  next){
                         //getting that list of recommended tracks
                         var addtracks = '';
                         var addTo =  get_uris(item,  addtracks, function (err, fTracks){
-                         
-                          //first get the playlist ID back from mongo. 
+
+                          //first get the playlist ID back from mongo.
                           var promise = getPlaylistID(uname);
-                    
+
                           promise.then(function(id){
                             var playID = id.playlistID;
                             // console.log(playID);
-              
+
                             //now populate the playlist
                             addToPlay(playID, fTracks, atok);
-                            
+
                             //use spotify playlist ID to get link
                             var playlist = {
                               url: 'https://api.spotify.com/v1/playlists/'+playID,
@@ -1035,32 +1037,37 @@ router.post('/genpaceplay', function (req, res,  next){
                               url = body.external_urls;
                               console.log(url);
                               //TODO: display spotify playlist somehow? or send url.
-                              
+
                             });
-              
+
                           });
-              
-              
+
+
                         });
                       });
-              
-              
+
+
                     });
-              
+
                 });
-                
+
           }  // end of the else for generating playlist
         }));
 
-        
+
       });
- 
-      
+
+
     });
-     
+
   }  //end of first else
   res.redirect('/dash');
- 
+
+});
+router.get("/logout", function(req, res) {
+  req.session.user = null;
+  req.logout();
+  res.redirect("/login");
 });
 
 //test functions page
@@ -1069,7 +1076,7 @@ router.get('/testfunc' , function(req, res,  next){
     var dist =  2.2;
     var time = 1200000;
 
-  
+
     console.log( mileTime(time, dist));
 
     return res.render('index');
